@@ -4,12 +4,14 @@ const mongoose = require('mongoose');
 
 const path = require('path');
 
+const routes = require('./routes');
+const { User, ContentProducer, Business, Manager } = require('./models');
 const { USER_ERROR, asyncMiddleware, errorHandler } = require('./util');
 
-const PORT = process.env.PORT || '3000';
+const PORT = process.env.PORT || '3003';
 
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost/blog-posts');
+mongoose.connect('mongodb://localhost/capstone');
 
 const app = express();
 
@@ -17,11 +19,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 
-/* example async route handler
-  app.get('/', asyncMiddleware(async (req, res, next) => {
-    await res.sendFile(path.resolve(__dirname, '../public/index.html'));
-  }));
-*/
+routes(app);
 
 app.listen(PORT, () => {
   console.log('Server running on port ' + PORT);
