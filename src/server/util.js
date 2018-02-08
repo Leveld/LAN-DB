@@ -2,7 +2,6 @@ const USER_ERROR = 422;
 
 const errorHandler = (error, req, res, next, message) => {
   message = message || error ? error.message : null || 'Oops! Looks like that doesn\'t work :(';
-  console.log(error);
   res.status(USER_ERROR).send({error, message});
 };
 

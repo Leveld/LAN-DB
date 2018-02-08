@@ -3,7 +3,8 @@ const { asyncMiddleware } = require('../util');
 
 module.exports = (app) => {
   app
-    .route('/createUser')
-    .post(asyncMiddleware(controllers.users.create))
-    .put(asyncMiddleware(controllers.users.convertToOtherUserType));
+    .route('/user')
+    .get(asyncMiddleware(controllers.users.getUser))
+    .post(asyncMiddleware(controllers.users.createUser))
+    .put(asyncMiddleware(controllers.users.convertToOtherUserType));;
 };
