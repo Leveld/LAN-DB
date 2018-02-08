@@ -1,7 +1,11 @@
+const axios = require('axios');
+const Model = require('mongoose').Model;
+
 const User = require('../models/User');
 const ContentProducer = require('../models/ContentProducer');
 const Business = require('../models/Business');
 const Manager = require('../models/Manager');
+const { dbServerIP } = require('../util');
 
 const error = (message) => {
   const e = new Error(message);
@@ -18,13 +22,13 @@ const checkContact = (contact = null) => {
   ];
 
   if (typeof contact === 'object' && !Array.isArray(contact)) {
-    for ([key, value] of Object.entries(contact)) {
+    for (let [key, value] of Object.entries(contact)) {
       if (validProperties.indexOf(key) < 0)
         error(`Unable to process parameter 'contact'. Received invalid property '${key}'. Received: ${contact}`);
       if (value === null)
         settings[key] = value = '';
       if (typeof value !== 'string')
-        error(`All properties of paramater 'contact' must be a String! Received: ${contact}`);
+        error(`All properties of parameter 'contact' must be a String! Received: ${contact}`);
 
     }
   } else {
@@ -49,7 +53,7 @@ const checkSettings = (settings = null) => {
       if (value === null)
         settings[key] = value = false;
       if (typeof value !== 'boolean')
-        error(`All properties of paramater 'settings' must be a Boolean! Received: ${settings}`);
+        error(`All properties of parameter 'settings' must be a Boolean! Received: ${settings}`);
     }
   } else {
     error(`Parameter 'settings' must be a key-value Object. Received: ${settings}`);
@@ -58,12 +62,12 @@ const checkSettings = (settings = null) => {
 };
 
 // this is used to create a User.
-const create = async (req, res, next) => {
-  const { email, fields } = req.body;
-  if (contact === null)
-    contact = undefined;
-  if (settings === null)
-    settings = undefined;
+const createUser = async (req, res, next) => {
+  const { email, fields = {} } = req.body;
+  if (fields.contact === null)
+    fields.contact = undefined;
+  if (fields.settings === null)
+    fields.settings = undefined;
 
   const missing = [];
   if (email == null)
@@ -80,13 +84,19 @@ const create = async (req, res, next) => {
   checkContact(fields.contact);
   checkSettings(fields.settings);
 
-  const user = new User({
-    email,
-    ...fields
-  })
+  try {
+    const user = await axios.get(`${dbServerIP}user?email=${email}`);
+  } catch (error) {
+      const user = new User({
+      email,
+      ...fields
+    })
 
-  const newUser = await user.save();
-  res.send(newUser);
+    const newUser = await user.save();
+    return await res.send(newUser.toObject());
+  }
+
+  error(`User with email '${email}' already exists!`);
 };
 
 // this is used to convert a User to a ContentProducer, Business, or Manager.
@@ -136,7 +146,70 @@ const convertToOtherUserType = async (req, res, next) => {
   if (convertedAccount)
     await user.remove();
 
-  res.send(convertedAccount);
+  await res.send(convertedAccount.toObject());
 }
 
-module.exports = { create, convertToOtherUserType };
+const getUser = async (req, res, next) => {
+  const { email, id, type } = req.query;
+
+  if (!email && !id)
+    error(`You must provide either an 'email' or 'id'.`);
+
+  const editUser = (user) => {
+    if (user instanceof Model)
+      return Object.assign({ type: user.constructor.modelName }, user.toObject());
+    return user;
+  }
+
+  if (typeof type === 'string') {
+
+    let accountType;
+
+    switch (type.toLowerCase()) {
+      case 'user':
+        accountType = User;
+        break;
+      case 'contentproducer':
+        accountType = ContentProducer;
+        break;
+      case 'business':
+        accountType = Business;
+        break;
+      case 'manager':
+        accountType = Manager;
+        break;
+      default:
+        error(`Unknown 'type'. Received: ${type}`);
+    }
+
+    const user = await accountType.findOne(id ? { _id: id } : { email });
+    if (!user)
+      error(`User not found. Received: ${JSON.stringify(req.query)}`);
+    await res.send(editUser(user));
+
+  } else {
+
+    if (id)
+      error(`Missing parameter 'type'.`);
+    let user;
+    let types = [
+      'user', 'contentproducer',
+      'business', 'manager'
+    ];
+
+    for (let t of types) {
+      try {
+        user = await axios.get(`${dbServerIP}user?email=${email}&type=${t}`);
+        if (user)
+          user = user.data;
+        return await res.send(user);
+      } catch (error) {
+        continue;
+      }
+    }
+    error(`User not found. Received: ${JSON.stringify(req.query)}`);
+  }
+
+};
+
+module.exports = { createUser, convertToOtherUserType, getUser };
