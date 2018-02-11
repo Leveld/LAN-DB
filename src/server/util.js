@@ -1,8 +1,8 @@
 const USER_ERROR = 422;
 
 const errorHandler = (error, req, res, next, message) => {
-  message = message || error ? error.message : null || 'Oops! Looks like that doesn\'t work :(';
-  res.status(USER_ERROR).send({error, message});
+  message = message || error ? error.message : undefined || 'Oops! Looks like that doesn\'t work :(';
+  res.status(error ? error.status : undefined || USER_ERROR).send({ error: error.stack, message });
 };
 
 const asyncMiddleware = cb =>
