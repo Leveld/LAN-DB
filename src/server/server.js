@@ -2,11 +2,10 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
-const path = require('path');
-
 const routes = require('./routes');
+
+// initialize models
 const { User, ContentProducer, Business, Manager } = require('./models');
-const { USER_ERROR, asyncMiddleware, errorHandler } = require('./util');
 
 const PORT = process.env.PORT || '3003';
 

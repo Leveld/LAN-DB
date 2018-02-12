@@ -1,11 +1,11 @@
 const axios = require('axios');
 const Model = require('mongoose').Model;
+const { dbServerIP } = require('capstone-utils');
 
 const User = require('../models/User');
 const ContentProducer = require('../models/ContentProducer');
 const Business = require('../models/Business');
 const Manager = require('../models/Manager');
-const { dbServerIP } = require('../util');
 
 const error = (message) => {
   const e = new Error(message);
@@ -147,7 +147,7 @@ const convertToOtherUserType = async (req, res, next) => {
     await user.remove();
 
   await res.send(convertedAccount.toObject());
-}
+};
 
 const getUser = async (req, res, next) => {
   const { email, id, type } = req.query;
@@ -216,4 +216,8 @@ const getUser = async (req, res, next) => {
 
 };
 
-module.exports = { createUser, convertToOtherUserType, getUser };
+module.exports = {
+  createUser,
+  convertToOtherUserType,
+  getUser
+};
