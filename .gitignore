@@ -61,5 +61,7 @@ typings/
 cloc.bat
 src/public/css
 src/public/js
+data/
 data/db/*
 src/server/secret.json
+secret.json
