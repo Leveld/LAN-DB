@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "axios": "^0.17.1",
+    "capstone-utils": "github:Leveld/LAN-Utils",
     "eslint": "^3.17.1",
     "eslint-config-airbnb": "^14.1.0",
     "eslint-plugin-import": "^2.2.0",

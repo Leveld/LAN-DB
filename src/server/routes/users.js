@@ -1,5 +1,5 @@
 const controllers = require('../controllers');
-const { asyncMiddleware } = require('../util');
+const { asyncMiddleware } = require('capstone-utils');
 
 module.exports = (app) => {
   app

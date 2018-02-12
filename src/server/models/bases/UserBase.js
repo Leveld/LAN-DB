@@ -92,9 +92,9 @@ const UserBase = (extend) => {
   });
 
   if (typeof extend === 'object' && extend !== null)
-    schema.add(extend)
+    schema.add(extend);
 
   return schema;
-}
+};
 
 module.exports = UserBase;
