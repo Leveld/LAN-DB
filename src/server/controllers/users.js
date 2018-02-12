@@ -87,7 +87,7 @@ const createUser = async (req, res, next) => {
   try {
     const user = await axios.get(`${dbServerIP}user?email=${email}`);
   } catch (error) {
-      const user = new User({
+    const user = new User({
       email,
       ...fields
     })
@@ -209,6 +209,10 @@ const getUser = async (req, res, next) => {
     }
     error(`User not found. Received: ${JSON.stringify(req.query)}`);
   }
+
+  const updateUser = async (req, res, next) => {
+
+  };
 
 };
 

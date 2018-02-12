@@ -11,7 +11,7 @@ const { USER_ERROR, asyncMiddleware, errorHandler } = require('./util');
 const PORT = process.env.PORT || '3003';
 
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost/capstone');
+mongoose.connect('mongodb://localhost:2001/capstone');
 
 const app = express();
 
@@ -23,6 +23,7 @@ routes(app);
 
 app.listen(PORT, () => {
   console.log('Server running on port ' + PORT);
+  console.log('Running in ' + (process.env.PRODUCTION ? 'Production' : 'Development'));
 });
 
 module.exports = app;
