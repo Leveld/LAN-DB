@@ -61,6 +61,12 @@ const checkSettings = (settings = null) => {
 
 };
 
+const editUser = (user) => {
+  if (user instanceof Model)
+    return Object.assign({ type: user.constructor.modelName }, user.toObject());
+  return user;
+}
+
 // this is used to create a User.
 const createUser = async (req, res, next) => {
   const { email, fields = {} } = req.body;
@@ -93,7 +99,7 @@ const createUser = async (req, res, next) => {
     })
 
     const newUser = await user.save();
-    return await res.send(newUser.toObject());
+    return await res.send(editUser(newUser));
   }
 
   error(`User with email '${email}' already exists!`);
@@ -146,7 +152,7 @@ const convertToOtherUserType = async (req, res, next) => {
   if (convertedAccount)
     await user.remove();
 
-  await res.send(convertedAccount.toObject());
+  await res.send(editUser(convertedAccount));
 };
 
 const getUser = async (req, res, next) => {
@@ -154,12 +160,6 @@ const getUser = async (req, res, next) => {
 
   if (!email && !id)
     error(`You must provide either an 'email' or 'id'.`);
-
-  const editUser = (user) => {
-    if (user instanceof Model)
-      return Object.assign({ type: user.constructor.modelName }, user.toObject());
-    return user;
-  }
 
   if (typeof type === 'string') {
 
