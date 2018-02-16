@@ -1,11 +1,11 @@
 const axios = require('axios');
 const Model = require('mongoose').Model;
+const { dbServerIP } = require('capstone-utils');
 
 const User = require('../models/User');
 const ContentProducer = require('../models/ContentProducer');
 const Business = require('../models/Business');
 const Manager = require('../models/Manager');
-const { dbServerIP } = require('../util');
 
 const error = (message) => {
   const e = new Error(message);
@@ -61,6 +61,12 @@ const checkSettings = (settings = null) => {
 
 };
 
+const editUser = (user) => {
+  if (user instanceof Model)
+    return Object.assign({ type: user.constructor.modelName }, user.toObject());
+  return user;
+}
+
 // this is used to create a User.
 const createUser = async (req, res, next) => {
   const { email, fields = {} } = req.body;
@@ -87,13 +93,13 @@ const createUser = async (req, res, next) => {
   try {
     const user = await axios.get(`${dbServerIP}user?email=${email}`);
   } catch (error) {
-      const user = new User({
+    const user = new User({
       email,
       ...fields
     })
 
     const newUser = await user.save();
-    return await res.send(newUser.toObject());
+    return await res.send(editUser(newUser));
   }
 
   error(`User with email '${email}' already exists!`);
@@ -146,20 +152,14 @@ const convertToOtherUserType = async (req, res, next) => {
   if (convertedAccount)
     await user.remove();
 
-  await res.send(convertedAccount.toObject());
-}
+  await res.send(editUser(convertedAccount));
+};
 
 const getUser = async (req, res, next) => {
   const { email, id, type } = req.query;
 
   if (!email && !id)
     error(`You must provide either an 'email' or 'id'.`);
-
-  const editUser = (user) => {
-    if (user instanceof Model)
-      return Object.assign({ type: user.constructor.modelName }, user.toObject());
-    return user;
-  }
 
   if (typeof type === 'string') {
 
@@ -210,6 +210,14 @@ const getUser = async (req, res, next) => {
     error(`User not found. Received: ${JSON.stringify(req.query)}`);
   }
 
+  const updateUser = async (req, res, next) => {
+
+  };
+
 };
 
-module.exports = { createUser, convertToOtherUserType, getUser };
+module.exports = {
+  createUser,
+  convertToOtherUserType,
+  getUser
+};
