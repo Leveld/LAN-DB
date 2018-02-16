@@ -61,6 +61,7 @@ const getUserFromEmailOrID = async (email, id, type) => {
   if (!email && !id)
     error(`You must provide either an 'email' or 'id'.`);
 
+
   if (typeof type === 'string') {
 
     let accountType;
@@ -85,10 +86,13 @@ const getUserFromEmailOrID = async (email, id, type) => {
     const user = await accountType.findOne(id ? { _id: id } : { email });
     if (!user)
       error(`User not found.`);
+
     return user;
   } else {
+
     if (id)
       error(`Missing parameter 'type'.`);
+
     let user;
     let types = [
       'user', 'contentproducer',
@@ -104,6 +108,7 @@ const getUserFromEmailOrID = async (email, id, type) => {
         continue;
       }
     }
+
     error(`User not found.`);
   }
 };
@@ -230,7 +235,7 @@ const updateUser = async (req, res, next) => {
 
 // PATCH /user/co
 const addContentOutlet = async (req, res, next) => {
-  const { email, id, type, contentOutlet } = req.query;
+  const { email, id, type, contentOutlet } = req.body;
 
   const user = await getUserFromEmailOrID(email, id, type);
   if (!user)

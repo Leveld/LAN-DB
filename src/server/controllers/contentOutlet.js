@@ -3,6 +3,7 @@ const { throwError, authServerIP } = require('capstone-utils');
 
 const { ContentOutlet } = require('../models');
 
+// GET /outlet
 const getOutlet = async (req, res, next) => {
   const { id } = req.query;
   const outlet = await ContentOutlet.findOne({ _id: id });
@@ -12,6 +13,7 @@ const getOutlet = async (req, res, next) => {
   return await res.send(outlet.toObject());
 }
 
+// POST /outlet
 const createOutlet = async (req, res, next) => {
   const { fields } = req.body;
 
@@ -23,6 +25,7 @@ const createOutlet = async (req, res, next) => {
   return await res.send(newOutlet.toObject());
 }
 
+// PATCH /outlet
 const updateOutlet = async (req, res, next) => {
   const { id, fields } = req.body;
 
