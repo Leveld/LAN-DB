@@ -45,7 +45,7 @@ const updateOutlet = async (req, res, next) => {
   await res.send(outlet.toObject({ depopulate: true }));
 }
 
-module.exports {
+module.exports = {
   getOutlet,
   createOutlet,
   updateOutlet

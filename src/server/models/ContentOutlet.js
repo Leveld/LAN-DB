@@ -1,4 +1,4 @@
-const axios = require('')
+const axios = require('axios');
 const mongoose = require('mongoose');
 const { apiServerIP } = require('capstone-utils');
 
@@ -76,7 +76,7 @@ ContentOutlet.post('find', async function(docs, next) {
   next();
 });
 
-ContentOutlet.post('findOne', findMiddleware);
+ContentOutlet.post('findOne', findOneMiddleware);
 
 
 
