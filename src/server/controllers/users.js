@@ -1,17 +1,13 @@
 const axios = require('axios');
 const Model = require('mongoose').Model;
+const { dbServerIP, throwError, USER_ERROR } = require('capstone-utils');
 
 const User = require('../models/User');
 const ContentProducer = require('../models/ContentProducer');
 const Business = require('../models/Business');
 const Manager = require('../models/Manager');
-const { dbServerIP } = require('../util');
 
-const error = (message) => {
-  const e = new Error(message);
-  e.name = 'CreateUserError';
-  throw e;
-};
+const error = (message, status = USER_ERROR) => throwError('CreateUserError', message, status);
 
 const checkContact = (contact = null) => {
   if (contact === null)
@@ -61,7 +57,69 @@ const checkSettings = (settings = null) => {
 
 };
 
-// this is used to create a User.
+const getUserFromEmailOrID = async (email, id, type) => {
+  if (!email && !id)
+    error(`You must provide either an 'email' or 'id'.`);
+
+
+  if (typeof type === 'string') {
+
+    let accountType;
+
+    switch (type.toLowerCase()) {
+      case 'user':
+        accountType = User;
+        break;
+      case 'contentproducer':
+        accountType = ContentProducer;
+        break;
+      case 'business':
+        accountType = Business;
+        break;
+      case 'manager':
+        accountType = Manager;
+        break;
+      default:
+        error(`Unknown 'type'. Received: ${type}`);
+    }
+
+    const user = await accountType.findOne(id ? { _id: id } : { email });
+    if (!user)
+      error(`User not found.`);
+
+    return user;
+  } else {
+
+    if (id)
+      error(`Missing parameter 'type'.`);
+
+    let user;
+    let types = [
+      'user', 'contentproducer',
+      'business', 'manager'
+    ];
+
+    for (let t of types) {
+      try {
+        user = await getUserFromEmailOrID(email, null, t);
+        if (user)
+          return user;
+      } catch (error) {
+        continue;
+      }
+    }
+
+    error(`User not found.`);
+  }
+};
+
+const editUser = (user) => {
+  if (user instanceof Model)
+    return Object.assign({ type: user.constructor.modelName }, user.toObject());
+  return user;
+};
+
+// POST /user
 const createUser = async (req, res, next) => {
   const { email, fields = {} } = req.body;
   if (fields.contact === null)
@@ -87,19 +145,19 @@ const createUser = async (req, res, next) => {
   try {
     const user = await axios.get(`${dbServerIP}user?email=${email}`);
   } catch (error) {
-      const user = new User({
+    const user = new User({
       email,
       ...fields
     })
 
     const newUser = await user.save();
-    return await res.send(newUser.toObject());
+    return await res.send(editUser(newUser));
   }
 
   error(`User with email '${email}' already exists!`);
 };
 
-// this is used to convert a User to a ContentProducer, Business, or Manager.
+// PUT /user
 const convertToOtherUserType = async (req, res, next) => {
   const { email, type, fields = {} } = req.body;
 
@@ -146,70 +204,61 @@ const convertToOtherUserType = async (req, res, next) => {
   if (convertedAccount)
     await user.remove();
 
-  await res.send(convertedAccount.toObject());
-}
+  await res.send(editUser(convertedAccount));
+};
 
+// GET /user
 const getUser = async (req, res, next) => {
   const { email, id, type } = req.query;
 
-  if (!email && !id)
-    error(`You must provide either an 'email' or 'id'.`);
-
-  const editUser = (user) => {
-    if (user instanceof Model)
-      return Object.assign({ type: user.constructor.modelName }, user.toObject());
-    return user;
-  }
-
-  if (typeof type === 'string') {
-
-    let accountType;
-
-    switch (type.toLowerCase()) {
-      case 'user':
-        accountType = User;
-        break;
-      case 'contentproducer':
-        accountType = ContentProducer;
-        break;
-      case 'business':
-        accountType = Business;
-        break;
-      case 'manager':
-        accountType = Manager;
-        break;
-      default:
-        error(`Unknown 'type'. Received: ${type}`);
-    }
-
-    const user = await accountType.findOne(id ? { _id: id } : { email });
-    if (!user)
-      error(`User not found. Received: ${JSON.stringify(req.query)}`);
-    await res.send(editUser(user));
-
-  } else {
-
-    if (id)
-      error(`Missing parameter 'type'.`);
-    let user;
-    let types = [
-      'user', 'contentproducer',
-      'business', 'manager'
-    ];
-
-    for (let t of types) {
-      try {
-        user = await axios.get(`${dbServerIP}user?email=${email}&type=${t}`);
-        if (user)
-          user = user.data;
-        return await res.send(user);
-      } catch (error) {
-        continue;
-      }
-    }
+  const user = await getUserFromEmailOrID(email, id, type);
+  if (!user)
     error(`User not found. Received: ${JSON.stringify(req.query)}`);
-  }
-
+  await res.send(editUser(user));
 };
 
-module.exports = { createUser, convertToOtherUserType, getUser };
+// PATCH /user
+const updateUser = async (req, res, next) => {
+  const { email, id, type, fields } = req.query;
+
+  const user = await getUserFromEmailOrID(email, id, type);
+  if (!user)
+    error(`User not found. Received: ${JSON.stringify(req.query)}`);
+
+  for (let [key, value] of fields)
+    user[key] = value;
+
+  await user.save();
+
+  await res.send(editUser(user));
+};
+
+// PATCH /user/co
+const addContentOutlet = async (req, res, next) => {
+  const { email, id, type, contentOutlet } = req.body;
+
+  const user = await getUserFromEmailOrID(email, id, type);
+  if (!user)
+    error(`User not found. Received: ${JSON.stringify(req.query)}`);
+
+  await axios.get(`${dbServerIP}outlet`, {
+    params: {
+      id: contentOutlet
+    }
+  });
+
+  if (!user.contentOutlets.includes(contentOutlet))
+    user.contentOutlets.push(contentOutlet);
+
+  await user.save();
+
+  await res.send(editUser(user));
+}
+
+module.exports = {
+  createUser,
+  convertToOtherUserType,
+  getUser,
+  updateUser,
+  addContentOutlet
+};

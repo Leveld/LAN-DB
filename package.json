@@ -9,10 +9,11 @@
     "devw": "npm run dev-win",
     "devm": "npm run dev-unix",
     "devl": "npm run dev-unix",
-    "mongo": "mongod --dbpath data/db"
+    "mongo": "mongod --dbpath data/db --port 2001"
   },
   "dependencies": {
     "axios": "^0.17.1",
+    "capstone-utils": "github:Leveld/LAN-Utils",
     "eslint": "^3.17.1",
     "eslint-config-airbnb": "^14.1.0",
     "eslint-plugin-import": "^2.2.0",
