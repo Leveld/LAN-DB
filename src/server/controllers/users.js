@@ -113,9 +113,13 @@ const getUserFromEmailOrID = async (email, id, type) => {
   }
 };
 
-const editUser = (user) => {
-  if (user instanceof Model)
-    return Object.assign({ type: user.constructor.modelName }, user.toObject());
+const editUser = async (user) => {
+  if (user instanceof Model) {
+    const type = user.constructor.modelName;
+    if (user.type === 'ContentProducer');
+      await user.populate('contentOutlets').execPopulate();
+    return Object.assign({ type }, user.toObject());
+  }
   return user;
 };
 
@@ -151,7 +155,7 @@ const createUser = async (req, res, next) => {
     })
 
     const newUser = await user.save();
-    return await res.send(editUser(newUser));
+    return await res.send(await editUser(newUser));
   }
 
   error(`User with email '${email}' already exists!`);
@@ -214,7 +218,7 @@ const getUser = async (req, res, next) => {
   const user = await getUserFromEmailOrID(email, id, type);
   if (!user)
     error(`User not found. Received: ${JSON.stringify(req.query)}`);
-  await res.send(editUser(user));
+  await res.send(await editUser(user));
 };
 
 // PATCH /user
@@ -230,7 +234,7 @@ const updateUser = async (req, res, next) => {
 
   await user.save();
 
-  await res.send(editUser(user));
+  await res.send(await editUser(user));
 };
 
 // PATCH /user/co
@@ -252,7 +256,7 @@ const addContentOutlet = async (req, res, next) => {
 
   await user.save();
 
-  await res.send(editUser(user));
+  await res.send(await editUser(user));
 }
 
 module.exports = {
