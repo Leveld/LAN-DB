@@ -116,7 +116,7 @@ const getUserFromEmailOrID = async (email, id, type) => {
 const editUser = async (user) => {
   if (user instanceof Model) {
     const type = user.constructor.modelName;
-    if (user.type === 'ContentProducer');
+    if (type === 'ContentProducer');
       await user.populate('contentOutlets').execPopulate();
     return Object.assign({ type }, user.toObject());
   }
@@ -208,7 +208,7 @@ const convertToOtherUserType = async (req, res, next) => {
   if (convertedAccount)
     await user.remove();
 
-  await res.send(editUser(convertedAccount));
+  await res.send(await editUser(convertedAccount));
 };
 
 // GET /user
