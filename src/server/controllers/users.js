@@ -116,7 +116,7 @@ const getUserFromEmailOrID = async (email, id, type) => {
 const editUser = async (user) => {
   if (user instanceof Model) {
     const type = user.constructor.modelName;
-    if (type === 'ContentProducer');
+    if (type === 'ContentProducer')
       await user.populate('contentOutlets').execPopulate();
     return Object.assign({ type }, user.toObject());
   }
