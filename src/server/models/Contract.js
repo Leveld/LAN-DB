@@ -16,7 +16,7 @@ const Contract = mongoose.Schema({
     },
     payoutType: {
       type: String,
-      enum: ['Per Video', 'Daily', 'Weekly', 'Monthly', 'Bi-Weekly', 'Monthly', 'Contract'],
+      enum: ['Per Video', 'Daily', 'Weekly', 'Monthly', 'Bi-Weekly', 'Monthly', 'On Completion'],
       required: true
     }
   },
