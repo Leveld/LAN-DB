@@ -35,7 +35,7 @@ const ContentOutlet = mongoose.Schema({
 
 ContentOutlet.methods.updateInfo = async (doc) => {
   if (doc instanceof mongoose.Model) {
-    doc.lastUpdate = new Date().toISOString();
+    doc.lastUpdated = new Date().toISOString();
     let tokenInfo = await axios.get(`${apiServerIP}coInfo`, {
       params: {
         id: doc._id

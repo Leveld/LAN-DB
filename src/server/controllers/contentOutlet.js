@@ -48,8 +48,12 @@ const updateOutlet = async (req, res, next) => {
   await res.send(outlet.toObject({ depopulate: true }));
 }
 
+// GET /outlets
+const getOutlets = async (req, res, next) => res.send(await ContentOutlet.find() || []);
+
 module.exports = {
   getOutlet,
   createOutlet,
-  updateOutlet
+  updateOutlet,
+  getOutlets
 };

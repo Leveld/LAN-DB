@@ -1,6 +1,6 @@
 const axios = require('axios');
 const Model = require('mongoose').Model;
-const { dbServerIP, throwError, USER_ERROR } = require('capstone-utils');
+const { dbServerIP, throwError, USER_ERROR, defaultUserPicture, defaultBAPicture, defaultCPPicture, defaultMAPicture } = require('capstone-utils');
 
 const User = require('../models/User');
 const ContentProducer = require('../models/ContentProducer');
@@ -116,9 +116,18 @@ const getUserFromEmailOrID = async (email, id, type) => {
 const editUser = async (user) => {
   if (user instanceof Model) {
     const type = user.constructor.modelName;
-    if (type === 'ContentProducer')
+    let profilePicture = '';
+    if (type === 'ContentProducer') {
+      profilePicture = defaultCPPicture;
       await user.populate('contentOutlets').execPopulate();
-    return Object.assign({ type }, user.toObject());
+    } else if (type === 'Business') {
+      profilePicture = defaultBAPicture;
+    } else if (type === 'Manager') {
+      profilePicture = defaultMAPicture;
+    } else {
+      profilePicture = defaultUserPicture;
+    }
+    return Object.assign({ type, profilePicture }, user.toObject());
   }
   return user;
 };
@@ -259,10 +268,57 @@ const addContentOutlet = async (req, res, next) => {
   await res.send(await editUser(user));
 }
 
+// GET /users
+const getUsers = async (req, res, next) => {
+  let { type = 'all' } = req.query;
+
+  if (typeof type === 'string')
+    type = type.toLowerCase();
+
+  const findUsers = async (type) => {
+    let users = [];
+
+    switch (type) {
+      case 'contentproducer':
+        users = await ContentProducer.find() || [];
+        break;
+      case 'manager':
+        users = await Manager.find() || [];
+        break;
+      case 'business':
+        users = await Business.find() || [];
+        break;
+      default:
+        break;
+    }
+
+    return await mapAsync(users, editUser);
+  };
+
+  try {
+    switch (type) {
+      case 'contentproducer':
+        return await res.send([].concat(await findUsers('contentproducer')));
+      case 'advertiser':
+        return await res.send([].concat(await findUsers('business'), await findUsers('manager')));
+      case 'manager':
+        return await res.send([].concat(await findUsers('manager')));
+      case 'business':
+        return await res.send([].concat(await findUsers('business')));
+      case 'all':
+      default:
+        return await res.send([].concat(await findUsers('contentproducer'), await findUsers('manager'), await findUsers('business')));
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createUser,
   convertToOtherUserType,
   getUser,
   updateUser,
-  addContentOutlet
+  addContentOutlet,
+  getUsers
 };
