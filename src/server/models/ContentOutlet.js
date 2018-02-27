@@ -31,7 +31,7 @@ const ContentOutlet = mongoose.Schema({
     type: Date,
     default: () => new Date().toISOString()
   }
-});
+}, { timestamps: true });
 
 ContentOutlet.methods.updateInfo = async (doc) => {
   if (doc instanceof mongoose.Model) {

@@ -1,20 +1,56 @@
-const axios = require('axios');
 const mongoose = require('mongoose');
 
 const Contract = mongoose.Schema({
-  payout: {
+  name: {
     type: String,
-    require: true
+    default: ""
   },
-  payoutType: {
+  description: {
     type: String,
-    require: true
+    default: ""
+  },
+  payout: {
+    amount: {
+      type: Number,
+      required: true
+    },
+    payoutType: {
+      type: String,
+      enum: ['Per Video', 'Daily', 'Weekly', 'Monthly', 'Bi-Weekly', 'Monthly', 'Contract'],
+      required: true
+    }
   },
   contractLength: {
+    type: Number,
+    required: true
+  },
+  advertiser: {
+    advertiserType: {
+      type: String,
+      required: true
+    },
+    advertiserID: {
+      type: mongoose.Schema.Types.ObjectId,
+      refPath: 'advertiser.advertiserType',
+      required: true
+    }
+  },
+  contentProducer: {
+    contentProducerType: {
+      type: String,
+      required: true
+    },
+    contentProducerID: {
+      type: mongoose.Schema.Types.ObjectId,
+      refPath: 'contentProducer.contentProducerType',
+      required: true
+    }
+  },
+  status: {
     type: String,
-    require: true
+    enum: ['Active', 'Inactive', 'Frozen', 'Terminated', 'Closed', 'Completed'],
+    default: 'Inactive'
   }
-});
-
+}, { timestamps: true });
 
 module.exports = mongoose.model('Contract', Contract);
