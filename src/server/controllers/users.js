@@ -2,10 +2,7 @@ const axios = require('axios');
 const Model = require('mongoose').Model;
 const { dbServerIP, throwError, USER_ERROR, defaultUserPicture, defaultBAPicture, defaultCPPicture, defaultMAPicture } = require('capstone-utils');
 
-const User = require('../models/User');
-const ContentProducer = require('../models/ContentProducer');
-const Business = require('../models/Business');
-const Manager = require('../models/Manager');
+const { User, ContentProducer, Business, Manager } = require('../models/User');
 
 const error = (message, status = USER_ERROR) => throwError('CreateUserError', message, status);
 

@@ -1,6 +1,6 @@
 const axios = require('axios');
 const mongoose = require('mongoose');
-const { apiServerIP } = require('capstone-utils');
+const { dbServerIP } = require('capstone-utils');
 
 const ContentOutlet = mongoose.Schema({
   channelName: {
@@ -36,7 +36,7 @@ const ContentOutlet = mongoose.Schema({
 ContentOutlet.methods.updateInfo = async (doc) => {
   if (doc instanceof mongoose.Model) {
     doc.lastUpdated = new Date().toISOString();
-    let tokenInfo = await axios.get(`${apiServerIP}coInfo`, {
+    let tokenInfo = await axios.get(`${dbServerIP}coInfo`, {
       params: {
         id: doc._id
       }

@@ -10,5 +10,9 @@ module.exports = (app) => {
 
   app
     .route('/outlets')
-    .get(asyncMiddleware(controllers.contentOutlet.getOutlets))
+    .get(asyncMiddleware(controllers.contentOutlet.getOutlets));
+
+  app
+    .route('/coInfo')
+    .get(asyncMiddleware(controllers.contentOutlet.getContentOutletInfo));
 };
