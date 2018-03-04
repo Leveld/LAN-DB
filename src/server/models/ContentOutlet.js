@@ -34,6 +34,7 @@ const ContentOutlet = mongoose.Schema({
 }, { timestamps: true });
 
 ContentOutlet.methods.updateInfo = async (doc) => {
+  console.log(`Automatically updating ContentOutlet information for '${doc._id}'`);
   if (doc instanceof mongoose.Model) {
     doc.lastUpdated = new Date().toISOString();
     let tokenInfo = await axios.get(`${dbServerIP}coInfo`, {

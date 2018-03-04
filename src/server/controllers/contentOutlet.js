@@ -5,6 +5,7 @@ const { google } = require('googleapis');
 const plus = google.plus('v1');
 const OAuth2Client = google.auth.OAuth2;
 const {googleClientID, googleClientSecret} = require('../secret.json');
+const Model = require('mongoose').Model;
 
 const { ContentOutlet } = require('../models');
 
@@ -89,8 +90,10 @@ const getContentOutletInfo = async (req, res, next) => {
   // call getOutletToken to get access token
   const { id } = req.query;
   const { accessToken, refreshToken, expires } = await getOutletToken(id);
+  if(!accessToken || !refreshToken || !expires)
+    throwError('DBContentOutlet', `Could not find tokens for content outlet with id of '${id}'`);
 
-  // call setCredentials on the OAuth2Client object with the token
+    // call setCredentials on the OAuth2Client object with the token
   oauth2Client.setCredentials({ access_token: accessToken, refresh_token: refreshToken, expiry_date: expires.valueOf() });
   const youtube = google.youtube({
     version: 'v3'

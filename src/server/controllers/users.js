@@ -1,8 +1,11 @@
 const axios = require('axios');
 const Model = require('mongoose').Model;
-const { dbServerIP, throwError, USER_ERROR, defaultUserPicture, defaultBAPicture, defaultCPPicture, defaultMAPicture } = require('capstone-utils');
+const { dbServerIP, throwError, USER_ERROR, defaultUserPicture, defaultBAPicture, defaultCPPicture, defaultMAPicture, mapAsync } = require('capstone-utils');
 
-const { User, ContentProducer, Business, Manager } = require('../models/User');
+const User = require('../models/User');
+const ContentProducer = require('../models/ContentProducer');
+const Business = require('../models/Business');
+const Manager = require('../models/Manager');
 
 const error = (message, status = USER_ERROR) => throwError('CreateUserError', message, status);
 
@@ -57,7 +60,6 @@ const checkSettings = (settings = null) => {
 const getUserFromEmailOrID = async (email, id, type) => {
   if (!email && !id)
     error(`You must provide either an 'email' or 'id'.`);
-
 
   if (typeof type === 'string') {
 
