@@ -26,7 +26,11 @@ const getOutletToken = async (contentOutlet) => {
         contentOutlet
       }
     });
+
   } catch (error) {}
+
+  if(token)
+    token = token.data;
 
   return token ? { accessToken: token.token, refreshToken: token.refreshToken, expires: new Date(token.expires) } :
                  { accessToken: null, refreshToken: null, expires: null};
@@ -90,6 +94,7 @@ const getContentOutletInfo = async (req, res, next) => {
   // call getOutletToken to get access token
   const { id } = req.query;
   const { accessToken, refreshToken, expires } = await getOutletToken(id);
+
   if(!accessToken || !refreshToken || !expires)
     throwError('DBContentOutlet', `Could not find tokens for content outlet with id of '${id}'`);
 
