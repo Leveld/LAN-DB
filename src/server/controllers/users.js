@@ -83,8 +83,6 @@ const getUserFromEmailOrID = async (email, id, type) => {
     }
 
     const user = await accountType.findOne(id ? { _id: id } : { email });
-    if (!user)
-      error(`User not found.`);
 
     return user;
   } else {
@@ -107,8 +105,6 @@ const getUserFromEmailOrID = async (email, id, type) => {
         continue;
       }
     }
-
-    error(`User not found.`);
   }
 };
 
@@ -154,19 +150,19 @@ const createUser = async (req, res, next) => {
   checkContact(fields.contact);
   checkSettings(fields.settings);
 
-  try {
-    const user = await axios.get(`${dbServerIP}user?email=${email}`);
-  } catch (error) {
-    const user = new User({
-      email,
-      ...fields
-    })
+  let user = await axios.get(`${dbServerIP}user?email=${email}`);
+  if (user && typeof user.data !== 'string')
+    return error(`User with email '${email}' already exists!`);
 
-    const newUser = await user.save();
-    return await res.send(await editUser(newUser));
-  }
+  user = new User({
+    email,
+    ...fields
+  });
 
-  error(`User with email '${email}' already exists!`);
+  const newUser = await user.save();
+  return await res.send(await editUser(newUser));
+
+
 };
 
 // PUT /user
@@ -224,8 +220,6 @@ const getUser = async (req, res, next) => {
   const { email, id, type } = req.query;
 
   const user = await getUserFromEmailOrID(email, id, type);
-  if (!user)
-    error(`User not found. Received: ${JSON.stringify(req.query)}`);
   await res.send(await editUser(user));
 };
 

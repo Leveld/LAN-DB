@@ -58,10 +58,7 @@ const getOutlet = async (req, res, next) => {
 const createOutlet = async (req, res, next) => {
   const { fields } = req.body;
 
-  if (typeof fields !== 'object')
-    throwError('DBContentOutlet', `Missing parameter 'fields'`);
-
-  const outlet = new ContentOutlet(fields);
+  const outlet = new ContentOutlet(fields || {});
   const newOutlet = await outlet.save();
   await res.send(await editOutlet(newOutlet));
 }
@@ -75,7 +72,9 @@ const updateOutlet = async (req, res, next) => {
   if (typeof fields !== 'object')
     throwError('DBContentOutlet', `Missing parameter 'fields'`);
 
-  const outlet = ContentOutlet.findOne({ _id: id });
+  const outlet = await ContentOutlet.findOne({ _id: id });
+
+  console.log(`outlet: ${outlet.constructor.name}`)
 
   if (!outlet)
     throwError('DBContentOutlet', `Could not find content outlet '${id}'`);
@@ -104,27 +103,37 @@ const getContentOutletInfo = async (req, res, next) => {
     version: 'v3'
   });
 
-  const callback = async (error, response) => {
-    try {
-      if (error)
-        throw error;
+  const getYoutubeInfo = () => {
+    return new Promise((resolve, reject) => {
+      const callback = async (error, response) => {
+        try {
+          if (error)
+            throw error;
 
-      const channelID = response.data.items[0].id;
-      const channelLink = `https://www.youtube.com/channel/${channelID}`;
-      const profilePicture = response.data.items[0].snippet.thumbnails.default.url;
-      const channelName = response.data.items[0].snippet.localized.title;
-      const channelInfo = { channelID, channelLink, profilePicture, channelName };
+          const channelID = response.data.items[0].id;
+          const channelLink = `https://www.youtube.com/channel/${channelID}`;
+          const profilePicture = response.data.items[0].snippet.thumbnails.default.url;
+          const channelName = response.data.items[0].snippet.localized.title;
+          const channelInfo = { channelID, channelLink, profilePicture, channelName };
 
-      await res.send(channelInfo);
-    } catch (error) {
-      next(error);
-    }
+          resolve(channelInfo);
+        } catch (error) {
+          reject(error);
+        }
+      };
+
+      youtube.channels.list({
+        "part": "snippet",
+        "mine": "true"
+      }, callback);
+    });
   };
 
-  youtube.channels.list({
-    "part": "snippet",
-    "mine": "true"
-  }, callback);
+  const youtubeInfo = await getYoutubeInfo();
+
+  const outletInfo = Object.assign({}, youtubeInfo);
+
+  await res.send(outletInfo);
 }
 
 // GET /outlets
