@@ -1,6 +1,6 @@
 const axios = require('axios');
 const Model = require('mongoose').Model;
-const { dbServerIP, throwError, USER_ERROR } = require('capstone-utils');
+const { dbServerIP, throwError, USER_ERROR, defaultUserPicture, defaultBAPicture, defaultCPPicture, defaultMAPicture, mapAsync } = require('capstone-utils');
 
 const User = require('../models/User');
 const ContentProducer = require('../models/ContentProducer');
@@ -61,7 +61,6 @@ const getUserFromEmailOrID = async (email, id, type) => {
   if (!email && !id)
     error(`You must provide either an 'email' or 'id'.`);
 
-
   if (typeof type === 'string') {
 
     let accountType;
@@ -84,8 +83,6 @@ const getUserFromEmailOrID = async (email, id, type) => {
     }
 
     const user = await accountType.findOne(id ? { _id: id } : { email });
-    if (!user)
-      error(`User not found.`);
 
     return user;
   } else {
@@ -108,17 +105,24 @@ const getUserFromEmailOrID = async (email, id, type) => {
         continue;
       }
     }
-
-    error(`User not found.`);
   }
 };
 
 const editUser = async (user) => {
   if (user instanceof Model) {
     const type = user.constructor.modelName;
-    if (type === 'ContentProducer')
+    let profilePicture = '';
+    if (type === 'ContentProducer') {
+      profilePicture = defaultCPPicture;
       await user.populate('contentOutlets').execPopulate();
-    return Object.assign({ type }, user.toObject());
+    } else if (type === 'Business') {
+      profilePicture = defaultBAPicture;
+    } else if (type === 'Manager') {
+      profilePicture = defaultMAPicture;
+    } else {
+      profilePicture = defaultUserPicture;
+    }
+    return Object.assign({ type, profilePicture }, user.toObject());
   }
   return user;
 };
@@ -146,19 +150,19 @@ const createUser = async (req, res, next) => {
   checkContact(fields.contact);
   checkSettings(fields.settings);
 
-  try {
-    const user = await axios.get(`${dbServerIP}user?email=${email}`);
-  } catch (error) {
-    const user = new User({
-      email,
-      ...fields
-    })
+  let user = await axios.get(`${dbServerIP}user?email=${email}`);
+  if (user && typeof user.data !== 'string')
+    return error(`User with email '${email}' already exists!`);
 
-    const newUser = await user.save();
-    return await res.send(await editUser(newUser));
-  }
+  user = new User({
+    email,
+    ...fields
+  });
 
-  error(`User with email '${email}' already exists!`);
+  const newUser = await user.save();
+  return await res.send(await editUser(newUser));
+
+
 };
 
 // PUT /user
@@ -216,8 +220,6 @@ const getUser = async (req, res, next) => {
   const { email, id, type } = req.query;
 
   const user = await getUserFromEmailOrID(email, id, type);
-  if (!user)
-    error(`User not found. Received: ${JSON.stringify(req.query)}`);
   await res.send(await editUser(user));
 };
 
@@ -259,10 +261,57 @@ const addContentOutlet = async (req, res, next) => {
   await res.send(await editUser(user));
 }
 
+// GET /users
+const getUsers = async (req, res, next) => {
+  let { type = 'all' } = req.query;
+
+  if (typeof type === 'string')
+    type = type.toLowerCase();
+
+  const findUsers = async (type) => {
+    let users = [];
+
+    switch (type) {
+      case 'contentproducer':
+        users = await ContentProducer.find() || [];
+        break;
+      case 'manager':
+        users = await Manager.find() || [];
+        break;
+      case 'business':
+        users = await Business.find() || [];
+        break;
+      default:
+        break;
+    }
+
+    return await mapAsync(users, editUser);
+  };
+
+  try {
+    switch (type) {
+      case 'contentproducer':
+        return await res.send([].concat(await findUsers('contentproducer')));
+      case 'advertiser':
+        return await res.send([].concat(await findUsers('business'), await findUsers('manager')));
+      case 'manager':
+        return await res.send([].concat(await findUsers('manager')));
+      case 'business':
+        return await res.send([].concat(await findUsers('business')));
+      case 'all':
+      default:
+        return await res.send([].concat(await findUsers('contentproducer'), await findUsers('manager'), await findUsers('business')));
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createUser,
   convertToOtherUserType,
   getUser,
   updateUser,
-  addContentOutlet
+  addContentOutlet,
+  getUsers
 };

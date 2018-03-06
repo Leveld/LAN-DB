@@ -31,16 +31,16 @@ const UserBase = (extend) => {
       type: String,
       required: true
     },
+    profilePicture: {
+      type: String,
+      default: ""
+    },
     auth0ID: {
       type: String,
       required: true
     },
     lastIP: String,
     lastLoginAt: Date,
-    createdAt: {
-      type: Date,
-      required: true
-    },
     age: Number,
     gender: String,
     contact: {
@@ -89,7 +89,7 @@ const UserBase = (extend) => {
         default: false
       }
     }
-  });
+  }, { timestamps: true });
 
   if (typeof extend === 'object' && extend !== null)
     schema.add(extend);

@@ -1,70 +1,82 @@
 const axios = require('axios');
 const mongoose = require('mongoose');
-const { apiServerIP } = require('capstone-utils');
+const { dbServerIP, IS_DEVELOPMENT } = require('capstone-utils');
 
 const ContentOutlet = mongoose.Schema({
   channelName: {
     type: String,
-    required: true
   },
   channelID: {
     type: String,
-    required: true
   },
   profilePicture: String,
   channelLink: {
     type: String,
-    required: true
   },
+  totalViews: Number,
+  totalSubscribers: Number,
+  views: Number,
+  likes: Number,
+  subscribersGained: Number,
+  subscribersLost: Number,
+  averageViewDuration: Number,
+  comments: Number,
+  estimatedMinutesWatched: Number,
+  dislikes: Number,
+  shares: Number,
   owner: {
     ownerType: {
       type: String,
-      required: true
     },
     ownerID: {
       type: mongoose.Schema.Types.ObjectId,
       refPath: 'owner.ownerType',
-      required: true
     }
   },
   lastUpdated: {
     type: Date,
     default: () => new Date().toISOString()
   }
-});
+}, { timestamps: true });
 
-ContentOutlet.methods.updateInfo = async (doc) => {
+ContentOutlet.methods.timeSinceUpdated = function() {
+  return new Date() - this.lastUpdated;
+}
+
+ContentOutlet.methods.updateInfo = async function (...args) {
+  const doc = args.length ? args[0] : this;
   if (doc instanceof mongoose.Model) {
-    doc.lastUpdate = new Date().toISOString();
-    let tokenInfo = await axios.get(`${apiServerIP}coInfo`, {
+    console.log(`Automatically updating ContentOutlet information for '${doc._id}'`);
+    let tokenInfo = await axios.get(`${dbServerIP}coInfo`, {
       params: {
         id: doc._id
       }
     });
-
     if (tokenInfo)
       tokenInfo = tokenInfo.data;
     else
       return;
-
+    doc.lastUpdated = new Date().toISOString();
     Object.assign(doc, tokenInfo);
     await doc.save();
   } else if (typeof doc === 'string') {
     const outlet = await ContentOutlet.findOne({ _id: doc })
     if (!outlet)
       return;
-    if ((new Date() - outlet.lastUpdated) > (3 * 1000)) {
-      await ContentOutlet.methods.updateInfo(outlet);
+    if (doc.timeSinceUpdated() > (3 * 1000)) {
+      await outlet.updateInfo();
     }
   }
-};
+}
 
 const findOneMiddleware = async function(doc, next) {
+  console.log(`Doc '${doc._id}' was last updated ${doc.timeSinceUpdated()} milliseconds ago.`)
+  const refreshDelay = IS_DEVELOPMENT ? 5000 : 21600000;
+  console.log(`Delay time: ${refreshDelay}`)
   if (!(doc instanceof mongoose.Model))
     next();
-  if ((new Date() - doc.lastUpdated) > 21600000) {
-    ContentOutlet.methods.updateInfo(doc);
-  }
+  if (doc.timeSinceUpdated() > refreshDelay)
+    await doc.updateInfo();
 };
 
 ContentOutlet.post('find', async function(docs, next) {
@@ -78,6 +90,6 @@ ContentOutlet.post('find', async function(docs, next) {
 
 ContentOutlet.post('findOne', findOneMiddleware);
 
-
+ContentOutlet.set('toObject', { minimize: false, versionKey: false, virtuals: true });
 
 module.exports = mongoose.model('ContentOutlet', ContentOutlet);
