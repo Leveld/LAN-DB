@@ -13,6 +13,17 @@ const ContentOutlet = mongoose.Schema({
   channelLink: {
     type: String,
   },
+  totalViews: Number,
+  totalSubscribers: Number,
+  views: Number,
+  likes: Number,
+  subscribersGained: Number,
+  subscribersLost: Number,
+  averageViewDuration: Number,
+  comments: Number,
+  estimatedMinutesWatched: Number,
+  dislikes: Number,
+  shares: Number,
   owner: {
     ownerType: {
       type: String,
@@ -79,6 +90,6 @@ ContentOutlet.post('find', async function(docs, next) {
 
 ContentOutlet.post('findOne', findOneMiddleware);
 
-
+ContentOutlet.set('toObject', { minimize: false, versionKey: false, virtuals: true });
 
 module.exports = mongoose.model('ContentOutlet', ContentOutlet);
