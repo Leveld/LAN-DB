@@ -53,4 +53,6 @@ const Contract = mongoose.Schema({
   }
 }, { timestamps: true });
 
+Contract.set('toObject', { minimize: false, versionKey: false, virtuals: true });
+
 module.exports = mongoose.model('Contract', Contract);

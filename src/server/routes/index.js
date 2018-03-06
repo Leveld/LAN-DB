@@ -1,11 +1,15 @@
-const users = require('./users');
+const campaigns = require('./campaigns');
 const contentOutlet = require('./contentOutlet');
 const contracts = require('./contracts');
-const campaigns = require('./campaigns');
+const conversations = require('./conversations');
+const messages = require('./messages');
+const users = require('./users');
 
 module.exports = (app) => {
-  users(app);
+  campaigns(app);
   contentOutlet(app);
   contracts(app);
-  campaigns(app);
+  conversations(app);
+  messages(app);
+  users(app);
 };
