@@ -94,6 +94,8 @@ const UserBase = (extend) => {
   if (typeof extend === 'object' && extend !== null)
     schema.add(extend);
 
+  schema.set('toObject', { minimize: false, versionKey: false, virtuals: true });
+
   return schema;
 };
 

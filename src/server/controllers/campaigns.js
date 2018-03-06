@@ -23,7 +23,7 @@ const getCampaign = async (req, res, next) => {
   if (!campaign)
     throwError(ERROR_NAME, 'Could not find campaign' );
 
-  return await res.send(campaign.toObject());
+  return await res.send(await editCampaign(campaign));
 };
 
 // POST /campaign
@@ -81,7 +81,7 @@ const addContract = async (req, res, next) => {
 
   await campaign.save();
 
-  await res.send(campaign.toObject());
+  await res.send(await editCampaign(campaign));
 };
 
 // GET /campaigns

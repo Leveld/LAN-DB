@@ -85,4 +85,6 @@ const Campaign = mongoose.Schema({
   }]
 }, { timestamps: true });
 
+Campaign.set('toObject', { minimize: false, versionKey: false, virtuals: true });
+
 module.exports = mongoose.model('Campaign', Campaign);

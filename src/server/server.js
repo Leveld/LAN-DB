@@ -5,7 +5,11 @@ const mongoose = require('mongoose');
 const routes = require('./routes');
 
 // initialize models
-const { User, ContentProducer, Business, Manager } = require('./models');
+const {
+  Business, Campaign, ContentOutlet,
+  ContentProducer, Contract,
+  Conversation, Manager, Message, User
+} = require('./models');
 
 const PORT = process.env.PORT || '3003';
 
