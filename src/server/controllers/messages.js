@@ -7,7 +7,7 @@ const ERROR_NAME = 'DBMessageError';
 
 const editMessage = async (message) => {
   if (message instanceof Model) {
-    return Object.assign({ }, message.toObject());
+    return Object.assign({ }, await message.toObject());
   }
   return message;
 };
@@ -63,7 +63,14 @@ const updateMessage = async (req, res, next) => {
 
 // GET /messages
 const getMessages = async (req, res, next) => {
-  const messages = await Message.find({ 'owner.ownerType': ownerType, 'owner.ownerID': ownerID }) || [];
+  const { authorID, authorType } = req.query;
+
+  if (typeof authorID !== 'string')
+    throwError(ERROR_NAME, `Expected authorID to be a String. Received: ${authorID}`);
+  if (typeof authorType !== 'string')
+    throwError(ERROR_NAME, `Expected authorType to be a String. Received: ${authorType}`);
+
+  const messages = await Message.find({ 'author.authorType': authorType, 'author.authorID': authorID }) || [];
   await res.send(await mapAsync(messages, editMessage));
 };
 

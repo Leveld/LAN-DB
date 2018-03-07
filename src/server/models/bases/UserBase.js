@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const transform = require('../transform');
 
 const Schema = mongoose.Schema;
 
@@ -95,6 +96,8 @@ const UserBase = (extend) => {
     schema.add(extend);
 
   schema.set('toObject', { minimize: false, versionKey: false, virtuals: true });
+
+  schema.set('toObject', { minimize: false, versionKey: false, virtuals: true, transform });
 
   return schema;
 };

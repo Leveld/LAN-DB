@@ -122,7 +122,9 @@ const editUser = async (user) => {
     } else {
       profilePicture = defaultUserPicture;
     }
-    return Object.assign({ type, profilePicture }, user.toObject());
+    if (typeof user.profilePicture !== 'string' || user.profilePicture === "")
+      user.profilePicture = profilePicture;
+    return Object.assign({ type }, await user.toObject());
   }
   return user;
 };

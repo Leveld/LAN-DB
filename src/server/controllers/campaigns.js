@@ -7,7 +7,7 @@ const ERROR_NAME = 'DBCampaignError';
 
 const editCampaign = async (campaign) => {
   if (campaign instanceof Model) {
-    return Object.assign({ }, campaign.toObject());
+    return Object.assign({ }, await campaign.toObject());
   }
   return campaign;
 };

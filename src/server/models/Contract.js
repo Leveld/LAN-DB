@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const { userTypes } = require('./User');
+const transform = require('./transform');
 
 const Contract = mongoose.Schema({
   name: {
@@ -27,6 +29,7 @@ const Contract = mongoose.Schema({
   advertiser: {
     advertiserType: {
       type: String,
+      enum: userTypes,
       required: true
     },
     advertiserID: {
@@ -38,6 +41,7 @@ const Contract = mongoose.Schema({
   contentProducer: {
     contentProducerType: {
       type: String,
+      enum: userTypes,
       required: true
     },
     contentProducerID: {

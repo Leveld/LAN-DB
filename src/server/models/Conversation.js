@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
-const { forEachAsync } = require('capstone-utils');
+const { forEachAsync, mapAsync } = require('capstone-utils');
 const Message = require('./Message');
+const { userTypes } = require('./User');
+const transform = require('./transform');
 
 const Conversation = mongoose.Schema({
   isGroup: {
@@ -10,6 +12,7 @@ const Conversation = mongoose.Schema({
   owner: {
     ownerType: {
       type: String,
+      enum: userTypes,
       required: true
     },
     ownerID: {
@@ -29,6 +32,7 @@ const Conversation = mongoose.Schema({
   participants: [{
     participantType: {
       type: String,
+      enum: userTypes,
       required: true
     },
     participantID: {
@@ -39,18 +43,12 @@ const Conversation = mongoose.Schema({
   }]
 }, { timestamps: true });
 
-Conversation.set('toObject', { minimize: false, versionKey: false, virtuals: true });
+Conversation.set('toObject', { minimize: false, versionKey: false, virtuals: true, transform });
 
-Conversation.virtual('messages').get(async function () {
-  const messages = await Message.find({ conversation: this._id }) || [];
-  messages.sort((a, b) => {
-    if (a.createdAt < b.createdAt)
-      return -1;
-    if (a.createdAt > b.createdAt)
-      return 1;
-    return 0;
-  });
-  return messages;
+Conversation.virtual('messages', {
+  ref: 'Message',
+  localField: '_id',
+  foreignField: 'conversation'
 });
 
 // TODO add hook to prevent duplicate participants
