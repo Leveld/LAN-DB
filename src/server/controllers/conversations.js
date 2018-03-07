@@ -1,5 +1,5 @@
 const Model = require('mongoose').Model;
-const { throwError, mapAsync } = require('capstone-utils');
+const { throwError, mapAsync, zip } = require('capstone-utils');
 
 const { Conversation } = require('../models');
 
@@ -38,26 +38,9 @@ const getConversation = async (req, res, next) => {
   await res.send(await editConversation(conversation));
 };
 
-const zip = (...items) => {
-  const zip = [];
-  let arrcount = 0;
-  items.forEach((item) => item.length > arrcount ? arrcount=item.length : null);
-  for(let i = 0; i < arrcount; i++){
-    const arrItem = new Array(items.length);
-    zip.push(arrItem);
-  }
-  for(let i = 0; i < items.length; i++){
-    for(let j = 0; j < arrcount; j++){
-      zip[j][i] = items[i][j];
-    }
-  }
-  return zip;
-}
-
 // POST /conversation
 const createConversation = async (req, res, next) => {
-  const { ownerID, ownerType, participants } = req.body;
-  let { name, description } = req.body;
+  const { ownerID, ownerType, participants, name, description } = req.body;
 
   if (typeof ownerID !== 'string')
     throwError(ERROR_NAME, `Expected ownerID to be a String. Received: ${ownerID}`);
@@ -65,16 +48,10 @@ const createConversation = async (req, res, next) => {
     throwError(ERROR_NAME, `Expected ownerType to be a String. Received: ${ownerType}`);
   if (!Array.isArray(participants) || participants.length < 1)
     throwError(ERROR_NAME, `Expected participants to be an Array of at least one participant. Received: ${participants}`);
-
   if (name !== undefined && name !== null && typeof name !== 'string')
     throwError(ERROR_NAME, `Expected name to be a String. Received: ${name}`);
-  else
-    name = null;
-
   if (description !== undefined && description !== null && typeof description !== 'string')
     throwError(ERROR_NAME, `Expected description to be a String. Received: ${description}`);
-  else
-    description = null;
 
   const compareIDs = (id1, id2) => `${id1}` === `${id2}`;
   const compareTypes = (type1, type2) => type1.toLowerCase() === type2.toLowerCase();
@@ -223,5 +200,6 @@ module.exports = {
   getConversation,
   createConversation,
   updateConversation,
-  getConversations
+  getConversations,
+  getAssociatedConversations
 };

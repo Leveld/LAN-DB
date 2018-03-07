@@ -7,7 +7,7 @@ const ContentProducer = require('../models/ContentProducer');
 const Business = require('../models/Business');
 const Manager = require('../models/Manager');
 
-const error = (message, status = USER_ERROR) => throwError('CreateUserError', message, status);
+const error = (message, status = USER_ERROR) => throwError('DBUserError', message, status);
 
 const checkContact = (contact = null) => {
   if (contact === null)
