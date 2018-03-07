@@ -7,7 +7,7 @@ const ContentProducer = require('../models/ContentProducer');
 const Business = require('../models/Business');
 const Manager = require('../models/Manager');
 
-const error = (message, status = USER_ERROR) => throwError('CreateUserError', message, status);
+const error = (message, status = USER_ERROR) => throwError('DBUserError', message, status);
 
 const checkContact = (contact = null) => {
   if (contact === null)
@@ -122,7 +122,9 @@ const editUser = async (user) => {
     } else {
       profilePicture = defaultUserPicture;
     }
-    return Object.assign({ type, profilePicture }, user.toObject());
+    if (typeof user.profilePicture !== 'string' || user.profilePicture === "")
+      user.profilePicture = profilePicture;
+    return Object.assign({ type }, await user.toObject());
   }
   return user;
 };

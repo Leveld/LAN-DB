@@ -7,7 +7,7 @@ const ERROR_NAME = 'DBContractError';
 
 const editContract = async (contract) => {
   if (contract instanceof Model) {
-    return Object.assign({ }, contract.toObject());
+    return Object.assign({ }, await contract.toObject());
   }
   return contract;
 };

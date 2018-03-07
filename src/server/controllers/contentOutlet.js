@@ -39,7 +39,7 @@ const getOutletToken = async (contentOutlet) => {
 const editOutlet = async (outlet) => {
   if (outlet instanceof Model) {
     const { accessToken } = await getOutletToken(outlet._id);
-    return Object.assign({ accessToken }, outlet.toObject());
+    return Object.assign({ accessToken }, await outlet.toObject());
   }
   return outlet;
 };
@@ -164,8 +164,8 @@ const getContentOutletInfo = async (req, res, next) => {
           const estimatedMinutesWatched = response.data.rows[0][6];
           const dislikes = response.data.rows[0][7];
           const shares = response.data.rows[0][8];
-          const analyticsInfo = { views, likes, subscribersGained, subscribersLost, 
-                                  averageViewDuration, comments, estimatedMinutesWatched, 
+          const analyticsInfo = { views, likes, subscribersGained, subscribersLost,
+                                  averageViewDuration, comments, estimatedMinutesWatched,
                                   dislikes, shares };
 
           resolve(analyticsInfo);
@@ -175,9 +175,9 @@ const getContentOutletInfo = async (req, res, next) => {
       };
 
       const query = {
-        'ids': 'channel==mine', 
-        'start-date': startDate, 
-        'end-date': endDate, 
+        'ids': 'channel==mine',
+        'start-date': startDate,
+        'end-date': endDate,
         'metrics': 'views,likes,subscribersGained,subscribersLost,averageViewDuration,comments,estimatedMinutesWatched,dislikes,shares'
       }
       youtubeAnalytics.reports.query(query, callback);

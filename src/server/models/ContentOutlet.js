@@ -1,6 +1,8 @@
 const axios = require('axios');
 const mongoose = require('mongoose');
 const { dbServerIP, IS_DEVELOPMENT } = require('capstone-utils');
+const { userTypes } = require('./User');
+const transform = require('./transform');
 
 const ContentOutlet = mongoose.Schema({
   channelName: {
@@ -27,6 +29,8 @@ const ContentOutlet = mongoose.Schema({
   owner: {
     ownerType: {
       type: String,
+      enum: userTypes,
+      required: true
     },
     ownerID: {
       type: mongoose.Schema.Types.ObjectId,
@@ -90,6 +94,6 @@ ContentOutlet.post('find', async function(docs, next) {
 
 ContentOutlet.post('findOne', findOneMiddleware);
 
-ContentOutlet.set('toObject', { minimize: false, versionKey: false, virtuals: true });
+ContentOutlet.set('toObject', { minimize: false, versionKey: false, virtuals: true, transform });
 
 module.exports = mongoose.model('ContentOutlet', ContentOutlet);

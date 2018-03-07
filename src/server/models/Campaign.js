@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const { userTypes } = require('./User');
+const transform = require('./transform');
 
 const Campaign = mongoose.Schema({
   contracts: [{
@@ -8,6 +10,7 @@ const Campaign = mongoose.Schema({
   owner: {
     ownerType: {
       type: String,
+      enum: userTypes,
       required: true
     },
     ownerID: {
@@ -67,6 +70,7 @@ const Campaign = mongoose.Schema({
     advertiser: {
       advertiserType: {
         type: String,
+        enum: userTypes,
         default: function() {
           return this.owner.ownerType
         }
@@ -85,6 +89,6 @@ const Campaign = mongoose.Schema({
   }]
 }, { timestamps: true });
 
-Campaign.set('toObject', { minimize: false, versionKey: false, virtuals: true });
+Campaign.set('toObject', { minimize: false, versionKey: false, virtuals: true, transform });
 
 module.exports = mongoose.model('Campaign', Campaign);

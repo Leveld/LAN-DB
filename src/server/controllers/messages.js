@@ -2,12 +2,13 @@ const Model = require('mongoose').Model;
 const { throwError, mapAsync } = require('capstone-utils');
 
 const { Conversation, Message } = require('../models');
+const { getAssociatedConversations } = require('./conversations');
 
 const ERROR_NAME = 'DBMessageError';
 
 const editMessage = async (message) => {
   if (message instanceof Model) {
-    return Object.assign({ }, message.toObject());
+    return Object.assign({ }, await message.toObject());
   }
   return message;
 };
@@ -29,9 +30,14 @@ const getMessage = async (req, res, next) => {
 // POST /message
 const createMessage = async (req, res, next) => {
   const { fields } = req.body;
+  const { authorID, authorType } = fields.author;
 
   if (typeof fields !== 'object' || fields === null)
     throwError(ERROR_NAME, 'Must provide fields' );
+
+  const conversation = (await getAssociatedConversations(authorID, authorType)).find((conversation) => `${conversation._id}` === `${fields.conversation}`);
+  if (!conversation)
+    throwError(ERROR_NAME, `Could not find conversation with id '${fields.conversation}' that user ${JSON.stringify(fields.author)} is allowed to post in.`)
 
   const newMessage = new Message(fields);
 
@@ -52,6 +58,10 @@ const updateMessage = async (req, res, next) => {
   if (!message)
     throwError(ERROR_NAME, `No Message found with id '${id}'`);
 
+  if (!fields.author ||
+    !(`${fields.author.authorID}` === `${message.author.authorID}` && fields.author.authorType.toLowerCase() === message.author.authorType.toLowerCase()))
+    throwError(ERROR_NAME, `Author does not have permission to modify Message.`);
+
   Object.entries(fields).forEach(([key, value]) => {
     message[key] = value;
   });
@@ -63,7 +73,14 @@ const updateMessage = async (req, res, next) => {
 
 // GET /messages
 const getMessages = async (req, res, next) => {
-  const messages = await Message.find({ 'owner.ownerType': ownerType, 'owner.ownerID': ownerID }) || [];
+  const { authorID, authorType } = req.query;
+
+  if (typeof authorID !== 'string')
+    throwError(ERROR_NAME, `Expected authorID to be a String. Received: ${authorID}`);
+  if (typeof authorType !== 'string')
+    throwError(ERROR_NAME, `Expected authorType to be a String. Received: ${authorType}`);
+
+  const messages = await Message.find({ 'author.authorType': authorType, 'author.authorID': authorID }) || [];
   await res.send(await mapAsync(messages, editMessage));
 };
 
