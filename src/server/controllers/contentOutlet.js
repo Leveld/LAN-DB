@@ -74,8 +74,6 @@ const updateOutlet = async (req, res, next) => {
 
   const outlet = await ContentOutlet.findOne({ _id: id });
 
-  console.log(`outlet: ${outlet.constructor.name}`)
-
   if (!outlet)
     throwError('DBContentOutlet', `Could not find content outlet '${id}'`);
 
