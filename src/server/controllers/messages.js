@@ -2,7 +2,7 @@ const Model = require('mongoose').Model;
 const { throwError, mapAsync } = require('capstone-utils');
 
 const { Conversation, Message } = require('../models');
-const { getAssociatedConversations } = require('./conversations');
+const { getAssociatedConversations, getConversation } = require('./conversations');
 
 const ERROR_NAME = 'DBMessageError';
 
@@ -43,6 +43,8 @@ const createMessage = async (req, res, next) => {
 
   await newMessage.save();
 
+  // req.query.id = `${newMessage.conversation}`;
+  // await res.send(await getConversation(req));
   await res.send(await editMessage(newMessage));
 };
 
@@ -68,6 +70,8 @@ const updateMessage = async (req, res, next) => {
 
   await message.save();
 
+  // req.query.id = `${message.conversation}`;
+  // await res.send(await getConversation(req));
   await res.send(await editMessage(message));
 };
 
