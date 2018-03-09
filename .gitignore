@@ -65,3 +65,4 @@ data/
 data/db/*
 src/server/secret.json
 secret.json
+
