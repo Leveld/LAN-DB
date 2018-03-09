@@ -16,7 +16,7 @@ const PORT = process.env.PORT || '3003';
 
 mongoose.Promise = global.Promise;
 if (IS_PRODUCTION)
-  mongoose.connect(`mongodb://${process.env.DBUSER}:${process.env.DBPASSWORD}@ds263138.mlab.com:63138/heroku_t3p057c7`);
+  mongoose.connect(`${process.env.MONGODB_URI}`);
 else
   mongoose.connect('mongodb://localhost:2001/capstone');
 
