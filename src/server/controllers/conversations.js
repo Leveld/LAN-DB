@@ -34,8 +34,9 @@ const getConversation = async (req, res, next) => {
   const conversation = await Conversation.findOne({ _id: id });
   if (!conversation)
     throwError(ERROR_NAME, `Could not find Conversation with id '${id}'` );
-
-  await res.send(await editConversation(conversation));
+  if (res)
+    return await res.send(await editConversation(conversation));
+  return await editConversation(conversation);
 };
 
 // POST /conversation

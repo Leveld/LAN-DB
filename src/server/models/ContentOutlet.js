@@ -50,7 +50,6 @@ ContentOutlet.methods.timeSinceUpdated = function() {
 ContentOutlet.methods.updateInfo = async function (...args) {
   const doc = args.length ? args[0] : this;
   if (doc instanceof mongoose.Model) {
-    console.log(`Automatically updating ContentOutlet information for '${doc._id}'`);
     let tokenInfo = await axios.get(`${dbServerIP}coInfo`, {
       params: {
         id: doc._id
@@ -74,9 +73,7 @@ ContentOutlet.methods.updateInfo = async function (...args) {
 }
 
 const findOneMiddleware = async function(doc, next) {
-  console.log(`Doc '${doc._id}' was last updated ${doc.timeSinceUpdated()} milliseconds ago.`)
   const refreshDelay = IS_DEVELOPMENT ? 5000 : 21600000;
-  console.log(`Delay time: ${refreshDelay}`)
   if (!(doc instanceof mongoose.Model))
     next();
   if (doc.timeSinceUpdated() > refreshDelay)
