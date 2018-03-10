@@ -15,7 +15,7 @@ const {
 const PORT = process.env.PORT || '3003';
 
 mongoose.Promise = global.Promise;
-if (IS_PRODUCTION)
+if (process.env.USE_HEROKU)
   mongoose.connect(`${process.env.MONGODB_URI}`);
 else
   mongoose.connect('mongodb://localhost:2001/capstone');
