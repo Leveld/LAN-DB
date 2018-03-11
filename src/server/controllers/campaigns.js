@@ -85,7 +85,25 @@ const addContract = async (req, res, next) => {
 };
 
 // GET /campaigns
-const getCampaigns = async (req, res, next) => await res.send(await mapAsync(await Campaign.find(), editCampaign));
+const getCampaigns = async (req, res, next) => {
+  const { userID, userType } = req.query;
+
+  if (!userID || (userID && !userType))
+    return await res.send(await mapAsync(await Campaign.find(), editCampaign));
+
+  const campaigns = await Campaign.find({
+    contracts: {
+      $in: await Contract.find({
+        $or: [
+          {'advertiser.advertiserID'          : userID, 'advertiser.advertiserType'          : userType},
+          {'contentProducer.contentProducerID': userID, 'contentProducer.contentProducerType': userType}
+        ]
+      })
+    }
+  }).populate('contracts');
+  
+  return await res.send(await mapAsync(campaigns, editCampaign));
+};
 
 module.exports = {
   getCampaign,
